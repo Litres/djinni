@@ -50,7 +50,12 @@ JNIEnv * jniGetThreadEnv() {
     assert(g_cachedJVM);
     JNIEnv * env = nullptr;
     const jint get_res = g_cachedJVM->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6);
-    if (get_res != 0 || !env) {
+    if (get_res == JNI_EDETACHED) {
+        if (g_cachedJVM->AttachCurrentThread(&env, NULL) != 0) {
+            // :(
+            std::abort();
+        }
+    } else if (get_res != JNI_OK) {
         // :(
         std::abort();
     }
